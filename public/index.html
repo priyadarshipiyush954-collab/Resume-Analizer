@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Analyser</title>
+  <meta name="description" content="AI resume checker performing crucial checks to ensure your resume is ready to get you interview callbacks.">
+  <meta property="og:title" content="Resume Analyser">
+  <meta property="og:description" content="AI resume checker performing crucial checks to ensure your resume is ready to get you interview callbacks.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Top Bar Contract: 3 Zones -->
+  <header class="top-bar">
+    <div class="container top-bar-inner">
+      <!-- Zone 1: Single text element wordmark -->
+      <a href="/" class="brand-wordmark">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Resume Analyser
+      </a>
+
+      <!-- Zone 2: Clean Text Navigation Links -->
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#workbench" class="nav-link">ATS Checker</a></li>
+          <li><a href="#capabilities" class="nav-link">Capabilities</a></li>
+          <li><a href="#benchmarks" class="nav-link">Sample Benchmarks</a></li>
+          <li><a href="#guides" class="nav-link">Writing Guides</a></li>
+        </ul>
+      </nav>
+
+      <!-- Zone 3: Primary Action -->
+      <div class="nav-actions">
+        <button id="openSigninBtn" class="btn-secondary btn-sm" type="button">Sign In</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Workbench Section -->
+  <main>
+    <section class="hero-section" id="workbench">
+      <div class="container">
+        
+        <div class="hero-header">
+          <p class="hero-kicker">ATS Compliance & Resume Benchmarking</p>
+          <h1 class="hero-title">Benchmark your resume against modern ATS filters</h1>
+          <p class="hero-subtitle">
+            Instant keyword density parsing, skills gap analysis, and ATS-compatibility scoring without tracking or data storage.
+          </p>
+        </div>
+
+        <!-- Workbench Box -->
+        <div class="workbench-box">
+          
+          <!-- Dropzone -->
+          <div id="dropzone" class="dropzone" role="region" aria-label="Resume Upload Area">
+            <input type="file" id="resumeFileInput" accept=".pdf" style="display: none;" />
+            
+            <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            
+            <h2 class="dropzone-title">Drop your resume PDF here, or browse files</h2>
+            <p class="dropzone-desc" id="uploadStatusMsg">Text-based PDF format, up to 5MB. 100% private in-memory processing.</p>
+            
+            <div class="upload-action-row">
+              <button type="button" id="browseBtn" class="btn-primary">
+                Select Resume PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div id="loadingWrapper" class="loading-wrapper" aria-live="polite">
+            <div class="loading-track">
+              <div class="loading-bar-fill"></div>
+            </div>
+            <p class="loading-status-text" id="loadingText">Extracting text & evaluating ATS keyword compatibility...</p>
+          </div>
+
+          <!-- Sample Benchmark Launchers -->
+          <div class="sample-benchmarks-row" id="benchmarks">
+            <span class="sample-benchmarks-label">Or test immediately with benchmark profiles:</span>
+            <div class="sample-btn-group">
+              <button type="button" class="sample-pill-btn" data-sample="fullstack">Senior Full-Stack</button>
+              <button type="button" class="sample-pill-btn" data-sample="data-scientist">Data Scientist</button>
+              <button type="button" class="sample-pill-btn" data-sample="junior-dev">Junior Developer</button>
+            </div>
+          </div>
+
+          <!-- Analysis Report Output Card -->
+          <div id="reportCard" class="report-card" role="region" aria-label="Analysis Report">
+            
+            <!-- Header Banner -->
+            <div class="report-header-banner">
+              <div class="report-meta-info">
+                <div class="report-doc-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  <span id="reportDocName">resume.pdf</span>
+                </div>
+                <div class="report-meta-sub">
+                  <span id="reportWordCount" class="tabular-nums">0</span> words analyzed · In-Memory Evaluation
+                </div>
+              </div>
+
+              <div class="report-score-box">
+                <div class="score-number-display">
+                  <span id="reportScoreVal" class="score-val tabular-nums">0</span>
+                  <span class="score-max">/ 100</span>
+                </div>
+                <span id="reportStatusBadge" class="status-badge neutral">Analyzing</span>
+              </div>
+            </div>
+
+            <!-- 4 Diagnostics Grid -->
+            <div class="diagnostic-grid">
+              <div class="metric-card">
+                <div class="metric-label">Keyword Density</div>
+                <div class="metric-val-row">
+                  <span id="metricKeywordVal" class="metric-val tabular-nums">0%</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div id="metricKeywordBar" class="metric-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-label">Action Verb Strength</div>
+                <div class="metric-val-row">
+                  <span id="metricVerbVal" class="metric-val tabular-nums">0%</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div id="metricVerbBar" class="metric-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-label">Section & Length Score</div>
+                <div class="metric-val-row">
+                  <span id="metricStructureVal" class="metric-val tabular-nums">0%</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div id="metricStructureBar" class="metric-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-label">ATS Parse Rate</div>
+                <div class="metric-val-row">
+                  <span id="metricAtsVal" class="metric-val tabular-nums">0%</span>
+                </div>
+                <div class="metric-bar-bg">
+                  <div id="metricAtsBar" class="metric-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Findings & Skills Grid -->
+            <div class="report-content-grid">
+              
+              <!-- Left: Detected & Categorized Skills -->
+              <div class="report-panel">
+                <h3 class="panel-title">
+                  <span>Detected Competencies (<span id="totalSkillsCount" class="tabular-nums">0</span>)</span>
+                </h3>
+
+                <div class="skill-category-block" id="catLanguagesBlock">
+                  <div class="skill-category-title">Languages & Core Tech</div>
+                  <div id="catLanguagesTags" class="tag-cloud"></div>
+                </div>
+
+                <div class="skill-category-block" id="catFrameworksBlock">
+                  <div class="skill-category-title">Frameworks & Libraries</div>
+                  <div id="catFrameworksTags" class="tag-cloud"></div>
+                </div>
+
+                <div class="skill-category-block" id="catCloudBlock">
+                  <div class="skill-category-title">Cloud, DevOps & Data</div>
+                  <div id="catCloudTags" class="tag-cloud"></div>
+                </div>
+
+                <div class="skill-category-block" id="catSoftBlock">
+                  <div class="skill-category-title">Professional & Collaborative</div>
+                  <div id="catSoftTags" class="tag-cloud"></div>
+                </div>
+
+                <div class="skill-category-block" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                  <div class="skill-category-title">Recommended Keywords to Consider</div>
+                  <div id="recommendedSkillsTags" class="tag-cloud"></div>
+                </div>
+              </div>
+
+              <!-- Right: Executive Summary & Actionable Recommendations -->
+              <div class="report-panel">
+                <h3 class="panel-title">Executive ATS Assessment</h3>
+                <p id="reportSummaryText" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                  Upload your resume to see your diagnostic assessment.
+                </p>
+
+                <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px;">
+                  Priority Optimization Steps
+                </h4>
+                <ul id="reportTipsList" class="tips-list"></ul>
+              </div>
+
+            </div>
+
+            <!-- Actions Row -->
+            <div class="report-actions-bar">
+              <button type="button" id="copyReportBtn" class="btn-secondary btn-sm">Copy Report Summary</button>
+              <button type="button" id="resetReportBtn" class="btn-primary btn-sm">Analyze Another Resume</button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Capabilities Section (Bento Grid) -->
+    <section class="capabilities-section" id="capabilities">
+      <div class="container">
+        
+        <div class="section-head">
+          <p class="section-kicker">Architectural Rigor</p>
+          <h2 class="section-title">Engineered to simulate modern recruiter screening systems</h2>
+          <p class="section-subtitle">
+            Modern applicant tracking systems (Workday, Greenhouse, Lever, Taleo) do not rely on simple word counts. They parse contextual hierarchies and measure technical relevance.
+          </p>
+        </div>
+
+        <div class="bento-grid">
+          
+          <div class="bento-card span-2">
+            <div class="bento-num">01. Exact Keyword Density Matching</div>
+            <h3 class="bento-heading">Deterministic skill boundary tokenization</h3>
+            <p class="bento-desc">
+              Extracts and maps technical taxonomy using whole-word regex boundaries. Avoids false-positive matches (such as matching "Go" inside "Google") while correctly identifying multi-word competencies like "Machine Learning", "REST API", and "Data Analysis".
+            </p>
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-num">02. Quantified Action Verbs</div>
+            <h3 class="bento-heading">High-impact impact scoring</h3>
+            <p class="bento-desc">
+              Scores active vs passive voice. Detects outcome-oriented verbs like <em>Architected</em>, <em>Optimized</em>, and <em>Spearheaded</em> that correlate with recruiter callback rates.
+            </p>
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-num">03. Structural Readability</div>
+            <h3 class="bento-heading">Length & parsing hygiene</h3>
+            <p class="bento-desc">
+              Evaluates total word count against the standard 450–750 word recruiter baseline, ensuring your experience is neither under-documented nor diluted by filler content.
+            </p>
+          </div>
+
+          <div class="bento-card span-2">
+            <div class="bento-num">04. Ephemeral Zero-Tracking Architecture</div>
+            <h3 class="bento-heading">100% in-memory processing with no storage</h3>
+            <p class="bento-desc">
+              Your resume PDF is parsed strictly within transient volatile memory buffers and destroyed immediately upon response completion. No files are saved to disk, no databases are queried, and no candidate data is retained.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Writing Guides Accordion -->
+    <section class="guides-section" id="guides">
+      <div class="container">
+        
+        <div class="section-head">
+          <p class="section-kicker">Editorial Best Practices</p>
+          <h2 class="section-title">Resume writing guides for high ATS conversion</h2>
+          <p class="section-subtitle">
+            Practical, actionable frameworks to elevate your resume bullet points from passive duty lists to high-impact achievements.
+          </p>
+        </div>
+
+        <div class="guides-accordion">
+          
+          <div class="guide-item open">
+            <div class="guide-header">
+              <h3 class="guide-title">01. The Google XYZ Achievement Formula</h3>
+              <span class="guide-icon">&#43;</span>
+            </div>
+            <div class="guide-body">
+              <p>The most effective resume bullet points follow Google's standard XYZ structure:</p>
+              <div class="guide-formula-box">
+                "Accomplished [X], as measured by [Y], by doing [Z]"
+              </div>
+              <p>
+                <strong>Weak Example:</strong> "Worked on backend microservices and improved database queries."<br>
+                <strong>Strong Example:</strong> "Decreased p99 database query latency by 38% [X], as measured by Datadog APM [Y], by restructuring indexing strategy and implementing Redis caching layers [Z]."
+              </p>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-header">
+              <h3 class="guide-title">02. Formatting for ATS Parsers (Avoid Formatting Traps)</h3>
+              <span class="guide-icon">&#43;</span>
+            </div>
+            <div class="guide-body">
+              <p>
+                Applicant Tracking Systems convert PDF files into raw linear text before parsing. Common design mistakes cause parsing failures:
+              </p>
+              <ul style="margin: 12px 0 12px 20px; line-height: 1.8;">
+                <li><strong>Multi-column tables:</strong> Parsers often read across columns left-to-right rather than down, garbling dates and company names. Stick to clean single-column layouts.</li>
+                <li><strong>Text in graphics or canvas:</strong> Any skills embedded inside graphical skill bars or icon meters cannot be extracted by ATS software.</li>
+                <li><strong>Header/Footer contact info:</strong> Many legacy parsers completely ignore the Microsoft Word or PDF page header zone. Keep email and phone in the body.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-header">
+              <h3 class="guide-title">03. Grouping & Categorizing Skills Intentionally</h3>
+              <span class="guide-icon">&#43;</span>
+            </div>
+            <div class="guide-body">
+              <p>
+                Recruiters spend an average of 6 to 8 seconds scanning a resume. Rather than dumping an alphabet soup of 40 unorganized keywords into a single paragraph, categorize them logically:
+              </p>
+              <div class="guide-formula-box">
+                <strong>Languages:</strong> TypeScript, Python, SQL, Go<br>
+                <strong>Frameworks & Libraries:</strong> React, Node.js, Express, Next.js<br>
+                <strong>Cloud & Infrastructure:</strong> AWS (ECS, S3), Docker, Kubernetes, CI/CD<br>
+                <strong>Tools & Databases:</strong> PostgreSQL, Redis, Git, Linux
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Sign In Modal -->
+  <div id="signinModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="signinModalTitle">
+    <div class="modal-dialog">
+      <button type="button" class="modal-close-btn" id="closeSigninBtn" aria-label="Close dialog">&times;</button>
+      <h2 class="modal-title" id="signinModalTitle">Sign In</h2>
+      <p class="modal-subtitle">Access saved analyses and comparison history.</p>
+
+      <form id="signinForm">
+        <div class="form-group">
+          <label class="form-label" for="signinEmail">Email or Username</label>
+          <input type="text" id="signinEmail" class="form-input" placeholder="alex@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signinPassword">Password</label>
+          <input type="password" id="signinPassword" class="form-input" placeholder="••••••••" required />
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <a href="/" class="brand-wordmark" style="font-size: 16px;">
+          Resume Analyser
+        </a>
+        <ul class="footer-links">
+          <li><a href="#workbench" class="footer-link">Analyzer</a></li>
+          <li><a href="#capabilities" class="footer-link">Capabilities</a></li>
+          <li><a href="#guides" class="footer-link">Guides</a></li>
+          <li><a href="#benchmarks" class="footer-link">Benchmarks</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-bottom">
+        <span>Resume Analyser &copy; 2026. Ephemeral in-memory ATS parser.</span>
+        <span>Zero candidate data retention.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // State & DOM Elements
+    const dropzone = document.getElementById('dropzone');
+    const resumeFileInput = document.getElementById('resumeFileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const uploadStatusMsg = document.getElementById('uploadStatusMsg');
+    const loadingWrapper = document.getElementById('loadingWrapper');
+    const loadingText = document.getElementById('loadingText');
+    const reportCard = document.getElementById('reportCard');
+    
+    // Report Elements
+    const reportDocName = document.getElementById('reportDocName');
+    const reportWordCount = document.getElementById('reportWordCount');
+    const reportScoreVal = document.getElementById('reportScoreVal');
+    const reportStatusBadge = document.getElementById('reportStatusBadge');
+    
+    const metricKeywordVal = document.getElementById('metricKeywordVal');
+    const metricKeywordBar = document.getElementById('metricKeywordBar');
+    const metricVerbVal = document.getElementById('metricVerbVal');
+    const metricVerbBar = document.getElementById('metricVerbBar');
+    const metricStructureVal = document.getElementById('metricStructureVal');
+    const metricStructureBar = document.getElementById('metricStructureBar');
+    const metricAtsVal = document.getElementById('metricAtsVal');
+    const metricAtsBar = document.getElementById('metricAtsBar');
+    
+    const totalSkillsCount = document.getElementById('totalSkillsCount');
+    const catLanguagesTags = document.getElementById('catLanguagesTags');
+    const catFrameworksTags = document.getElementById('catFrameworksTags');
+    const catCloudTags = document.getElementById('catCloudTags');
+    const catSoftTags = document.getElementById('catSoftTags');
+    const recommendedSkillsTags = document.getElementById('recommendedSkillsTags');
+    const reportSummaryText = document.getElementById('reportSummaryText');
+    const reportTipsList = document.getElementById('reportTipsList');
+    
+    const copyReportBtn = document.getElementById('copyReportBtn');
+    const resetReportBtn = document.getElementById('resetReportBtn');
+    
+    let currentAnalysisData = null;
+
+    // File selection trigger
+    browseBtn.addEventListener('click', () => {
+      resumeFileInput.click();
+    });
+
+    dropzone.addEventListener('click', (e) => {
+      if (e.target !== browseBtn) {
+        resumeFileInput.click();
+      }
+    });
+
+    // Drag & Drop Handlers
+    ['dragenter', 'dragover'].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    });
+
+    resumeFileInput.addEventListener('change', () => {
+      if (resumeFileInput.files && resumeFileInput.files.length > 0) {
+        handleFileUpload(resumeFileInput.files[0]);
+      }
+    });
+
+    // Sample Benchmark buttons
+    document.querySelectorAll('.sample-pill-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const sampleId = btn.getAttribute('data-sample');
+        handleSampleBenchmark(sampleId);
+      });
+    });
+
+    async function handleFileUpload(file) {
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+        uploadStatusMsg.style.color = 'var(--danger-text)';
+        uploadStatusMsg.textContent = 'Only PDF format resumes are supported.';
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        uploadStatusMsg.style.color = 'var(--danger-text)';
+        uploadStatusMsg.textContent = 'File size exceeds 5MB limit.';
+        return;
+      }
+
+      showLoading(`Parsing and analyzing "${file.name}"...`);
+
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      try {
+        const response = await fetch('/analyze', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Server error while parsing resume.');
+        }
+
+        renderAnalysisReport(data);
+      } catch (err) {
+        hideLoading();
+        uploadStatusMsg.style.color = 'var(--danger-text)';
+        uploadStatusMsg.textContent = err.message || 'An error occurred during resume analysis.';
+      }
+    }
+
+    async function handleSampleBenchmark(sampleId) {
+      showLoading(`Loading benchmark profile for ${sampleId}...`);
+
+      try {
+        const response = await fetch('/api/analyze-sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sampleId })
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch sample benchmark.');
+        }
+
+        renderAnalysisReport(data);
+      } catch (err) {
+        hideLoading();
+        uploadStatusMsg.style.color = 'var(--danger-text)';
+        uploadStatusMsg.textContent = err.message || 'Error loading sample benchmark.';
+      }
+    }
+
+    function showLoading(msg) {
+      loadingText.textContent = msg;
+      loadingWrapper.style.display = 'block';
+      reportCard.style.display = 'none';
+      uploadStatusMsg.style.color = 'var(--accent-primary)';
+      uploadStatusMsg.textContent = msg;
+    }
+
+    function hideLoading() {
+      loadingWrapper.style.display = 'none';
+    }
+
+    function renderAnalysisReport(data) {
+      currentAnalysisData = data;
+      
+      reportDocName.textContent = data.filename || 'Uploaded Resume';
+      reportWordCount.textContent = (data.wordCount || 0).toLocaleString();
+      reportScoreVal.textContent = data.score;
+      
+      // Status badge
+      reportStatusBadge.textContent = data.atsStatus || 'Evaluated';
+      reportStatusBadge.className = 'status-badge ' + (data.statusTone || 'neutral');
+
+      // 4 Diagnostics
+      const metrics = data.metrics || {};
+      metricKeywordVal.textContent = `${metrics.keywordDensity || 0}%`;
+      metricKeywordBar.style.width = `${metrics.keywordDensity || 0}%`;
+
+      metricVerbVal.textContent = `${metrics.actionVerbImpact || 0}%`;
+      metricVerbBar.style.width = `${metrics.actionVerbImpact || 0}%`;
+
+      metricStructureVal.textContent = `${metrics.structureScore || 0}%`;
+      metricStructureBar.style.width = `${metrics.structureScore || 0}%`;
+
+      metricAtsVal.textContent = `${metrics.atsParsingReadability || 0}%`;
+      metricAtsBar.style.width = `${metrics.atsParsingReadability || 0}%`;
+
+      // Skill categories
+      const cats = data.categorizedSkills || {};
+      renderTagGroup(catLanguagesTags, cats.languages || []);
+      renderTagGroup(catFrameworksTags, cats.frameworks || []);
+      renderTagGroup(catCloudTags, [...(cats.toolsAndCloud || []), ...(cats.dataAndAI || [])]);
+      renderTagGroup(catSoftTags, cats.softSkills || []);
+      
+      totalSkillsCount.textContent = (data.skills || []).length;
+
+      // Recommended Missing Skills
+      renderTagGroup(recommendedSkillsTags, data.recommendations || [], 'missing');
+
+      // Executive Summary
+      reportSummaryText.textContent = data.summary || 'Resume analyzed successfully.';
+
+      // Actionable Tips
+      reportTipsList.innerHTML = '';
+      const tips = data.keyTips || [];
+      if (tips.length > 0) {
+        tips.forEach(tip => {
+          const li = document.createElement('li');
+          li.className = 'tip-item';
+          li.innerHTML = `<span class="tip-bullet">&#10003;</span><span>${tip}</span>`;
+          reportTipsList.appendChild(li);
+        });
+      }
+
+      // Show report
+      reportCard.style.display = 'block';
+      uploadStatusMsg.style.color = 'var(--success-text)';
+      uploadStatusMsg.textContent = `Completed evaluation for ${data.filename || 'document'}.`;
+
+      // Smooth scroll to report
+      reportCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderTagGroup(container, items, extraClass = '') {
+      container.innerHTML = '';
+      if (!items || items.length === 0) {
+        container.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">None detected in this section.</span>';
+        return;
+      }
+
+      items.forEach(item => {
+        const span = document.createElement('span');
+        span.className = 'skill-tag ' + extraClass;
+        span.textContent = item;
+        container.appendChild(span);
+      });
+    }
+
+    // Reset button
+    resetReportBtn.addEventListener('click', () => {
+      resumeFileInput.value = '';
+      reportCard.style.display = 'none';
+      uploadStatusMsg.style.color = 'var(--text-muted)';
+      uploadStatusMsg.textContent = 'Text-based PDF format, up to 5MB. 100% private in-memory processing.';
+      dropzone.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Copy Summary button
+    copyReportBtn.addEventListener('click', () => {
+      if (!currentAnalysisData) return;
+      const text = `ATS Analysis Report for ${currentAnalysisData.filename}
+Score: ${currentAnalysisData.score}/100 (${currentAnalysisData.atsStatus})
+Word Count: ${currentAnalysisData.wordCount}
+Detected Skills (${(currentAnalysisData.skills || []).length}): ${(currentAnalysisData.skills || []).join(', ')}
+Recommended Additions: ${(currentAnalysisData.recommendations || []).join(', ')}
+Summary: ${currentAnalysisData.summary}`;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = copyReportBtn.textContent;
+        copyReportBtn.textContent = 'Copied to Clipboard!';
+        setTimeout(() => {
+          copyReportBtn.textContent = originalText;
+        }, 2000);
+      });
+    });
+
+    // Guides Accordion
+    document.querySelectorAll('.guide-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.parentElement;
+        item.classList.toggle('open');
+      });
+    });
+
+    // Sign In Modal
+    const signinModal = document.getElementById('signinModal');
+    const openSigninBtn = document.getElementById('openSigninBtn');
+    const closeSigninBtn = document.getElementById('closeSigninBtn');
+    const signinForm = document.getElementById('signinForm');
+
+    openSigninBtn.addEventListener('click', () => {
+      signinModal.style.display = 'flex';
+    });
+
+    closeSigninBtn.addEventListener('click', () => {
+      signinModal.style.display = 'none';
+    });
+
+    signinModal.addEventListener('click', (e) => {
+      if (e.target === signinModal) {
+        signinModal.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && signinModal.style.display === 'flex') {
+        signinModal.style.display = 'none';
+      }
+    });
+
+    signinForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signinEmail').value;
+      openSigninBtn.textContent = email.split('@')[0] || 'Account';
+      signinModal.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

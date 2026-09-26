@@ -1,0 +1,8 @@
+{
+  "name": "Resume Analyser",
+  "description": "AI resume checker performing crucial checks to ensure your resume is ready to get you interview callbacks.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
